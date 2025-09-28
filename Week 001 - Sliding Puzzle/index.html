@@ -5,7 +5,16 @@
         <script src="script.js" defer></script>
     </head>
     <body>
-        <input type="file" id="imageLoader" name="imageLoader"/>
+        <p>Upload an image to create a sliding puzzle. Click on the tiles adjacent to the empty space to slide them. Try to reassemble the original image!</p>
+        <div class="controls">
+            <input type="file" id="imageLoader" name="imageLoader"/>
+            <label class="switch">
+                <input id="showPreview" type="checkbox">
+                <span class="slider round"></span>
+                <span class="text">Show Result</span>
+            </label>
+        </div>
         <canvas id="puzzleCanvas" height="400" width="400"></canvas>
+        <canvas id="previewCanvas" style="visibility: hidden;" height="400" width="400"></canvas>
     </body>
 </html>

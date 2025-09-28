@@ -7,10 +7,12 @@
     https://stackoverflow.com/questions/8903854/check-image-width-and-height-before-upload-with-javascript
     https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API
     https://stackoverflow.com/questions/4032179/how-do-i-get-the-width-and-height-of-a-html5-canvas
+    https://www.w3schools.com/howto/howto_css_switch.asp
 */
 
 const canvasSize = 4;
 const shuffleCount = 200;
+const animationFrames = 10;
 
 let canvasTiles = [];
 
@@ -21,8 +23,9 @@ function sleep(ms) {
 }
 
 class Canvas {
-    constructor(canvas) {
+    constructor(canvas, previewCanvas) {
         this.ctx = canvas.getContext('2d');
+        this.previewCanvas = previewCanvas;
 
         let size = canvas.getBoundingClientRect().width;
         this.tileSize = size / canvasSize;
@@ -43,7 +46,8 @@ class Canvas {
             this.image.src = event.target.result;
         }.bind(this);
 
-        this.image.onload = function() {
+        this.image.onload = async function() {
+            this.drawPreview();
             let minSize = Math.min(this.image.width, this.image.height);
             this.imageTile = minSize / canvasSize;
 
@@ -55,7 +59,7 @@ class Canvas {
 
             this.draw();
             this.calculateMoveableTiles();
-            this.shuffle();
+            await this.shuffle();
             this.loaded = true;
         }.bind(this);
     }
@@ -72,13 +76,36 @@ class Canvas {
         if (emptyY < canvasSize - 1) this.moveableTiles.push(this.tiles[emptyIndex + canvasSize]);
     }
 
-    moveTile(tile) {
+    async moveTile(tile) {
         if (!this.moveableTiles.includes(tile)) return;
 
         let tileIndex = this.tiles.indexOf(tile);
         let emptyIndex = this.tiles.indexOf(canvasSize*canvasSize-1);
 
         [this.tiles[tileIndex], this.tiles[emptyIndex]] = [this.tiles[emptyIndex], this.tiles[tileIndex]];
+
+        this.ctx.fillStyle = "black";
+        let emptyI = emptyIndex % canvasSize;
+        let emptyJ = Math.floor(emptyIndex / canvasSize);
+
+        let tileI = tileIndex % canvasSize;
+        let tileJ = Math.floor(tileIndex / canvasSize);
+
+        let deltaX = (emptyI - tileI) / animationFrames;
+        let deltaY = (emptyJ - tileJ) / animationFrames;
+
+        let imageI = tile % canvasSize;
+        let imageJ = Math.floor(tile / canvasSize);
+        
+        if (this.loaded) {
+            for (let i=0; i < animationFrames; i++) {
+                this.ctx.fillStyle = "black";
+                this.ctx.fillRect(tileI * this.tileSize, tileJ * this.tileSize, this.tileSize, this.tileSize);
+                this.ctx.drawImage(this.image, imageI * this.imageTile, imageJ * this.imageTile, this.imageTile, this.imageTile,
+                    (tileI + deltaX * i) * this.tileSize, (tileJ + deltaY * i) * this.tileSize, this.tileSize, this.tileSize);
+                await sleep(1);
+            }
+        }
 
         this.draw();
         this.calculateMoveableTiles();
@@ -110,12 +137,39 @@ class Canvas {
             let randomTile = this.moveableTiles[Math.floor(Math.random() * this.moveableTiles.length)];
             this.moveTile(randomTile);
 
-            await sleep(1);
+            await sleep(5);
         }
+    }
+
+    drawPreview() {
+        if (this.image.width == 0 || this.image.height == 0) {
+            return;
+        }
+
+        let ctx = this.previewCanvas.getContext('2d');
+        let size = this.previewCanvas.getBoundingClientRect().width;
+        let tileSize = size / canvasSize;
+
+        let minSize = Math.min(this.image.width, this.image.height);
+
+        ctx.drawImage(this.image, 0, 0, minSize, minSize, 0, 0, size, size);
+        ctx.fillStyle = "black";
+        ctx.fillRect((canvasSize - 1) * tileSize, (canvasSize - 1) * tileSize, tileSize, tileSize);
     }
 }
 
-const canvas = new Canvas(document.getElementById('puzzleCanvas'));
+function showPreview(show) {
+    let resultCanvas = document.getElementById('previewCanvas');
+    resultCanvas.style.visibility = show ? "visible" : "hidden";
+}
+
+const canvas = new Canvas(document.getElementById('puzzleCanvas'), document.getElementById('previewCanvas'));
+
+showPreview(document.getElementById('showPreview').checked);
+
+document.getElementById('showPreview').addEventListener('change', function(e) {
+    showPreview(e.target.checked);
+}, false);
 
 document.getElementById('imageLoader').addEventListener('change', function(e) {
     canvas.loadImage(e.target.files);

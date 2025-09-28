@@ -1,0 +1,65 @@
+canvas {
+    border: 2px solid black;
+    background-color: #eee;
+}
+
+.controls {
+    display: block;
+    margin: 1em 0;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+    position: relative;
+    cursor: pointer;
+    padding: 2px 1.5em 2px 1.5em;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 1em;
+  width: 1em;
+  top: 0.15em;
+  left: 0.2em;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.switch input:checked + .slider {
+  background-color: #2196F3;
+}
+
+.switch input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+.switch input:checked + .slider:before {
+  left: calc(100% - 1.2em);
+}
+
+.slider.round {
+  border-radius: 1em;
+}
+
+.slider.round:before {
+  border-radius: 1em;
+}
+
+.text {
+    padding: 0 0.5em;
+}
